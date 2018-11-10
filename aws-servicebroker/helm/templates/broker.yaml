@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  release: {{ .Release.Name }}
+  heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.sizing.count }}
+  selector:
+    matchLabels:
+      release: {{ .Release.Name }}
+      name: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        release: {{ .Release.Name }}
+        name: {{ .Chart.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "
+          {{- if .Values.image.registry.hostname -}}
+            {{- .Values.image.registry.hostname }}/
+          {{- end -}}
+          {{ .Values.image.organization }}/{{ .Chart.Name }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: [ /servicebroker ]
+        args:
+        - -brokerId
+        - {{ .Values.aws.brokerid }}
+        {{ if .Values.aws.insecure -}} - -insecure {{- end }}
+        - -logtostderr
+        - -port
+        - "8443" # See container port for "http"
+        - -region
+        - {{ .Values.aws.region }}
+        - -s3Bucket
+        - {{ .Values.aws.s3bucket }}
+        - -s3Key
+        - {{ .Values.aws.s3key }}
+        - -s3Region
+        - {{ .Values.aws.s3region }}
+        - -tableName
+        - {{ .Values.aws.tablename }}
+        - -templateFilter
+        - {{ .Values.aws.templatefilter }}
+        - -profile
+        - default
+        {{ if .Values.broker.username }}
+        - -basicAuthUser
+        - {{ .Values.broker.username }}
+        {{ end }}
+        {{ if .Values.broker.password }}
+        - -basicAuthPass
+        - {{ .Values.broker.password }}
+        {{ end }}
+        - -v
+        - "99"
+        env:
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /aws/credentials
+        volumeMounts:
+        - name: aws-credentials
+          mountPath: /aws
+          readOnly: true
+        ports:
+          - name: http
+            containerPort: 8443
+            protocol: TCP
+        #livenessProbe:
+        #  httpGet:
+        #    path: /v2/catalog
+        #    port: http
+        #readinessProbe:
+        #  httpGet:
+        #    path: /v2/catalog
+        #    port: http
+      initContainers:
+      - name: {{ .Chart.Name }}-init
+        image: "
+          {{- if .Values.image.registry.hostname -}}
+            {{- .Values.image.registry.hostname }}/
+          {{- end -}}
+          {{ .Values.image.organization }}/{{ .Chart.Name }}-init:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: TABLE_NAME
+          value: {{ .Values.aws.tablename }}
+        - name: REGION
+          value: {{ .Values.aws.region }}
+        volumeMounts:
+        - name: aws-credentials
+          mountPath: /root/.aws
+          readOnly: true
+      volumes:
+      - name: aws-credentials
+        secret:
+          secretName: aws-credentials
+          defaultMode: 0400
+          items:
+          - key: credentials
+            path: credentials
+      {{ if or .Values.image.registry.username .Values.image.registry.password }}
+      imagePullSecrets:
+      - name: registry-secrets
+      {{ end }}

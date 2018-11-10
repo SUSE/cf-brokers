@@ -1,0 +1,5 @@
+FROM opensuse/leap
+RUN zypper install --no-confirm python3-pip
+RUN pip install --upgrade pip awscli
+COPY init.sh /
+ENTRYPOINT [ "/usr/bin/env", "bash", "/init.sh" ]
