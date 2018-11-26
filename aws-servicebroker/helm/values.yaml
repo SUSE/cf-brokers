@@ -1,0 +1,28 @@
+image:
+  registry:
+    hostname: ~
+    username: ""
+    password: ""
+  organization: splatform
+  tag: latest
+  pullPolicy: IfNotPresent # Override for development
+
+sizing:
+  count: 1
+
+broker:
+  username: ~
+  password: ~
+
+aws:
+  tablename: awssb
+  keyid: ~
+  secretkey: ~
+  s3bucket: awsservicebroker
+  s3region: us-east-1
+  s3key: templates/latest
+  templatefilter: -main.yaml
+  brokerid: awsservicebroker
+  rolearn: ~
+  region: us-west-2
+  insecure: "" # Set to `true` to use insecure mode
