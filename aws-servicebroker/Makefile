@@ -20,6 +20,9 @@ AWS_VPC ?= $(shell aws ec2 describe-vpcs --region "${REGION}" --output json | \
         ) |                                                                   \
         .VpcId'                                                               \
 )
+AWS_ROLE_ARN ?= $(shell aws iam list-roles | \
+	jq -r '.Roles[] | select(.RoleName | contains("ServiceBroker")) | .Arn')
+export AWS_ROLE_ARN
 
 image:
 	${MAKE} -C src image IMAGE=${DOCKER_REPOSITORY}/aws-servicebroker TAG=${DOCKER_TAG}
@@ -90,8 +93,8 @@ deploy: tls.pem tls.key
 		--set aws.region=${REGION} \
 		--set tls.cert="$$(base64 --wrap=0 tls.pem)" \
 		--set tls.key="$$(base64 --wrap=0 tls.key)" \
-		--set-string aws.targetaccountid=138384977974 \
-		--set aws.targetrolename=ServiceBroker \
+		--set-string aws.targetaccountid=$(shell echo ${AWS_ROLE_ARN} | cut -d: -f5) \
+		--set aws.targetrolename=$${AWS_ROLE_ARN#*/} \
 		--set aws.vpcid=${AWS_VPC} \
 		--set brokerconfig.verbosity=0 \
 		--set image=${DOCKER_REPOSITORY}/aws-servicebroker:${DOCKER_TAG}
