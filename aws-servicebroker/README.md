@@ -4,7 +4,9 @@
 
 ### Prerequisites
 
-1.Create the required DynamoDB table where the AWS service broker will store the data:
+1.Ensure you've SCF deployed on an EKS cluster.
+
+2.Create the required DynamoDB table where the AWS service broker will store the data:
 ```
 	aws dynamodb create-table \
 		--attribute-definitions \
@@ -20,8 +22,9 @@
 			ReadCapacityUnits=5,WriteCapacityUnits=5 \
 		--region ${AWS_REGION} --table-name awssb
 ```
-2. Wait for the table to finish creating.
-3. Create a server certificate for the broker (substitute `CF_NAMESPACE` and `BROKER_NAMESPACE`):
+3.Wait for the table to finish creating.
+
+4.Create a server certificate for the broker (substitute `CF_NAMESPACE` and `BROKER_NAMESPACE`):
 
     a. Get the CA certificate:
       ```
@@ -47,7 +50,7 @@
       openssl x509 -req -CA ca.pem -CAkey ca.key -CAcreateserial -in tls.req -out tls.pem
       ```
 
-4.Install the AWS service broker as documented at 
+5.Install the AWS service broker as documented at 
 
 https://github.com/awslabs/aws-servicebroker/blob/master/docs/getting-started-k8s.md
 
@@ -58,7 +61,7 @@ Service Broker should not be installed.
 
 `helm install aws-sb/aws-servicebroker --name aws-servicebroker --namespace aws-sb --version 1.0.0-beta.3 --set aws.secretkey=$aws_access_key --set aws.accesskeyid=$aws_key_id --set deployClusterServiceBroker=false --set tls.cert="$(base64 -w0 tls.pem)" --set tls.key="$(base64 -w0 tls.key)" --set aws.tablename=awssb --set aws.vpcid=$vpcid --set aws.region=$aws_region --set authenticate=false`
 
-5.Create a service broker in CF:
+6.Create a service broker in CF:
   ```
 	cf create-service-broker aws-servicebroker unused-username unused-password  https://aws-servicebroker.${BROKER_NAMESPACE}
 	cf service-brokers
@@ -66,9 +69,9 @@ Service Broker should not be installed.
 	cf enable-service-access rdsmysql -p custom
   ```
 
-6.Check that the service broker is registered with `cf service-brokers`
+7.Check that the service broker is registered with `cf service-brokers`
 
-7.Check that there are services available with `cf service-access`
+8.Check that there are services available with `cf service-access`
 
 ### Creating a service instance
 
