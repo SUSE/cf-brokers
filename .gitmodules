@@ -1,4 +1,0 @@
-[submodule "aws-servicebroker/src"]
-	path = aws-servicebroker/src
-	url = https://github.com/awslabs/aws-servicebroker.git
-	branch = 100cc6beb021bafa23f2f5883afaa946b1a073f8
