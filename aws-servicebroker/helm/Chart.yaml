@@ -1,5 +1,0 @@
-apiVersion: v1
-appVersion: "0.1.0"
-description: AWS service broker for containerized Cloud Foundry
-name: aws-service-broker
-version: 0.1.0
